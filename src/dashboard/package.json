@@ -1,0 +1,29 @@
+{
+  "name": "minimal-react-starter",
+  "version": "0.1.0",
+  "description": "Minimal react starter project",
+  "main": "src/index.js",
+  "scripts": {
+    "compile": "webpack",
+    "build": "webpack -p",
+    "start": "webpack-dev-server"
+  },
+  "author": "Christian Eder",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "7.4.5",
+    "@babel/cli": "7.4.4",
+    "@babel/preset-react": "^7.0.0",
+    "babel-loader": "8.0.6",
+    "babel-preset-env": "1.7.0",
+    "babel-preset-react": "6.24.1",
+    "webpack": "4.33.0",
+    "webpack-cli": "3.3.4",
+    "webpack-dev-server": "3.7.1",
+    "babel-plugin-react-transform": "^3.0.0"
+  },
+  "dependencies": {
+    "react": "16.8.6",
+    "react-dom": "16.8.6"
+  }
+}
