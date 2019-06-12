@@ -1,13 +1,16 @@
-    
+
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import {App} from "./app";
-import {AppContainer} from "react-hot-loader";
+import { AppWithRouter } from "./app";
+import { AppContainer } from "react-hot-loader";
+import { BrowserRouter } from "react-router-dom";
 
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", () => {
   ReactDOM.render(
     <AppContainer>
-      <App />
+      <BrowserRouter>
+        <AppWithRouter />
+      </BrowserRouter>
     </AppContainer>,
     document.getElementById("mount")
   );
@@ -17,14 +20,16 @@ document.addEventListener("DOMContentLoaded", function() {
 declare let module: { hot: any };
 
 if (module.hot) {
-    module.hot.accept("./app", () => {
-        const NewApp = require("./app").App;
+  module.hot.accept("./app", () => {
+    const NewApp = require("./app").AppWithRouter;
 
-        ReactDOM.render(
-            <AppContainer>
-                <NewApp/>
-            </AppContainer>,
-            document.getElementById("mount")
-        );
-    });
+    ReactDOM.render(
+      <AppContainer>
+        <BrowserRouter>
+          <NewApp />
+        </BrowserRouter>
+      </AppContainer>,
+      document.getElementById("mount")
+    );
+  });
 }
