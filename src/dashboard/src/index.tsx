@@ -4,6 +4,8 @@ import * as ReactDOM from "react-dom";
 import { AppWithRouter } from "./app";
 import { AppContainer } from "react-hot-loader";
 import { BrowserRouter } from "react-router-dom";
+import "chartist/dist/scss/chartist.scss";
+import "antd/dist/antd.css";
 
 document.addEventListener("DOMContentLoaded", () => {
   ReactDOM.render(

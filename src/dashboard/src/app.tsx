@@ -27,11 +27,11 @@ class App extends React.Component<RouteComponentProps> {
             <Menu.Item key="2"><Link to="/devices">Devices</Link></Menu.Item>
           </Menu>
         </Header>
-        <Content style={{ padding: '0 50px' }}>
+        <Content style={{ padding: '0 50px', display: "flex", flexDirection : "column" }}>
           <Breadcrumb style={{ margin: '16px 0' }}>
-            {this.props.location.pathname.split("/").filter(p => !!p).map((l,i) => <Breadcrumb.Item key={i}>{l}</Breadcrumb.Item>)}
+            {this.props.location.pathname.split("/").filter(p => !!p).map((l, i) => <Breadcrumb.Item key={i}>{l}</Breadcrumb.Item>)}
           </Breadcrumb>
-          <div style={{ background: '#fff', padding: 24 }}>
+          <div style={{ background: '#fff', padding: 24, height: "100%" }}>
             <Switch>
               <Route path="/dashboard" exact component={Dashboard} />
               <Route path="/devices" exact component={Devices} />
