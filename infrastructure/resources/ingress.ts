@@ -38,12 +38,18 @@ export class Ingress {
                     MeasuredAt: d.Timestamp
                 });
 
+                bindings.devices =[{
+                    PartitionKey: "devices",
+                    RowKey: context.bindingData.systemProperties["iothub-connection-device-id"],
+                    LastTelemetrySentAt: context.bindingData.systemProperties["iothub-enqueuedtime"]
+                }];
                 bindings.temperature = dataPoints.filter(p => p.Type === "temperature").map(transform);
                 bindings.humidity = dataPoints.filter(p => p.Type === "humidity").map(transform);
             }
         }
         args = storage.bindTableOutput(args, "temperature", "Temperature");
         args = storage.bindTableOutput(args, "humidity", "Humidity");
+        args = storage.bindTableOutput(args, "devices", "Devices");
 
         iotHub.onEvent("telemetry", args);
     }
