@@ -4,7 +4,6 @@ import { Layout, Menu, Breadcrumb } from "antd";
 const { Header, Content, Footer } = Layout;
 import "./app.scss";
 import { Dashboard } from './views/dashboard';
-import { ClickParam } from 'antd/lib/menu';
 import { Devices } from './views/devices';
 
 class App extends React.Component<RouteComponentProps> {
