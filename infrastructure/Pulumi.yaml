@@ -1,0 +1,3 @@
+name: pulumi-structurizr-iot
+runtime: nodejs
+description: Simple IoT solution build and deployed with pulumi, described using structurizr
