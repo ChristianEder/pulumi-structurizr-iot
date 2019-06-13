@@ -32,7 +32,7 @@ export class Ingress {
                 let dataPoints: { Type: string, Value: number, Timestamp: string, TimestampTicks: number }[] = message.DataPoints;
                 
                 let transform = (d: { Type: string, Value: number, Timestamp: string, TimestampTicks: number }) => ({
-                    PartitionKey: context.bindingData.systemProperties["iothub-connection-device-id"],
+                    PartitionKey: context.bindingData.systemProperties["iothub-connection-device-id"] + "_" + d.Type,
                     RowKey: d.TimestampTicks,
                     Value: d.Value,
                     MeasuredAt: d.Timestamp
@@ -41,14 +41,13 @@ export class Ingress {
                 bindings.devices =[{
                     PartitionKey: "devices",
                     RowKey: context.bindingData.systemProperties["iothub-connection-device-id"],
-                    LastTelemetrySentAt: context.bindingData.systemProperties["iothub-enqueuedtime"]
+                    LastTelemetrySentAt: context.bindingData.systemProperties["iothub-enqueuedtime"],
+                    LastTelemetryModel: JSON.stringify([...(new Set(dataPoints.map(d => d.Type)))])
                 }];
-                bindings.temperature = dataPoints.filter(p => p.Type === "temperature").map(transform);
-                bindings.humidity = dataPoints.filter(p => p.Type === "humidity").map(transform);
+                bindings.telemetry = dataPoints.map(transform);
             }
         }
-        args = storage.bindTableOutput(args, "temperature", "Temperature");
-        args = storage.bindTableOutput(args, "humidity", "Humidity");
+        args = storage.bindTableOutput(args, "telemetry", "Telemetry");
         args = storage.bindTableOutput(args, "devices", "Devices");
 
         iotHub.onEvent("telemetry", args);

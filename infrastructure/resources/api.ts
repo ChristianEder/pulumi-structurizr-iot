@@ -39,15 +39,14 @@ export class Api {
             resourceGroup,
             callback: async (context, req: HttpRequest) => {
 
-                const temperature: { Type: string, Value: number, Timestamp: string, TimestampTicks: number }[] = context.bindings.temperature;
-                const humidity: { Type: string, Value: number, Timestamp: string, TimestampTicks: number }[] = context.bindings.humidity;
+                const telemetry: { Type: string, Value: number, Timestamp: string, TimestampTicks: number }[] = context.bindings.telemetry;
 
                 return {
                     status: 200,
                     body: JSON.stringify({
-                        id: req.query.deviceId,
-                        temperature : temperature.map(t => ({value: t.Value, at: t.Timestamp})),
-                        humidity : humidity.map(t => ({value: t.Value, at: t.Timestamp}))
+                        id: req.query.filter.split("_")[0],
+                        ["telemetryType"]: req.query.filter.split("_")[1],
+                        values : telemetry.map(t => ({value: t.Value, at: t.Timestamp}))
                     })
                 };
             },
@@ -55,8 +54,7 @@ export class Api {
             account: storage
         };
 
-        args = storage.bindTableInput(args, "temperature", "Temperature", "(PartitionKey eq '{deviceId}')");
-        args = storage.bindTableInput(args, "humidity", "Humidity", "(PartitionKey eq '{deviceId}')");
+        args = storage.bindTableInput(args, "telemetry", "Telemetry", "(PartitionKey eq '{filter}')");
 
         return new azure.appservice.HttpEventSubscription('api-get-telemetry', args);
     }
