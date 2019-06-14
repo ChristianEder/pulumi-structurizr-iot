@@ -1,61 +1,31 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as azure from "@pulumi/azure"
 import { HttpRequest } from "@pulumi/azure/appservice";
+import { getDevices } from "../../src/api/getDevices"
+import { getTelemetry } from "../../src/api/getTelemetry"
 
 export class Api {
 
     public getDevicesUrl: pulumi.Output<string>;
     public getTelemetryUrl: pulumi.Output<string>;
 
-    constructor(resourceGroup: azure.core.ResourceGroup, storage: azure.storage.Account) {
-
-        this.getDevicesUrl = this.createGetDevices(resourceGroup, storage).url;
-        this.getTelemetryUrl = this.createGetTelemetry(resourceGroup, storage).url;
+    constructor(private resourceGroup: azure.core.ResourceGroup, private storage: azure.storage.Account) {
+        
+        this.getDevicesUrl = this.createApiEndpoint('api-get-devices', getDevices, a => storage.bindTableInput(a, "devices", "Devices")).url;
+        this.getTelemetryUrl = this.createApiEndpoint('api-get-telemetry', getTelemetry, a => storage.bindTableInput(a, "telemetry", "Telemetry", "(PartitionKey eq '{filter}')")).url;
     }
 
-    createGetDevices(resourceGroup: azure.core.ResourceGroup, storage: azure.storage.Account) {
+    createApiEndpoint(name: string, callback: any, bindings: (args: azure.appservice.HttpEventSubscriptionArgs) => azure.appservice.HttpEventSubscriptionArgs) {
+
         let args: azure.appservice.HttpEventSubscriptionArgs = {
-            resourceGroup,
-            callback: async (context, req: HttpRequest) => {
-
-                const devices: { LastTelemetryModel: string, LastTelemetrySentAt: string, PartitionKey: string, RowKey: string }[] = context.bindings.devices;
-
-                return {
-                    status: 200,
-                    body: JSON.stringify(devices.map(d => ({ id: d.RowKey, lastTelemetrySentAt: d.LastTelemetrySentAt, lastTelemetryModel: JSON.parse(d.LastTelemetryModel) })))
-                };
-            },
+            resourceGroup: this.resourceGroup,
+            callback: callback,
             methods: ["GET"],
-            account: storage
+            account: this.storage
         };
 
-        args = storage.bindTableInput(args, "devices", "Devices");
-
-        return new azure.appservice.HttpEventSubscription('api-get-devices', args);
-    }
-
-    createGetTelemetry(resourceGroup: azure.core.ResourceGroup, storage: azure.storage.Account) {
-        let args: azure.appservice.HttpEventSubscriptionArgs = {
-            resourceGroup,
-            callback: async (context, req: HttpRequest) => {
-
-                const telemetry: { Type: string, Value: number, Timestamp: string, TimestampTicks: number }[] = context.bindings.telemetry;
-
-                return {
-                    status: 200,
-                    body: JSON.stringify({
-                        id: req.query.filter.split("_")[0],
-                        ["telemetryType"]: req.query.filter.split("_")[1],
-                        values : telemetry.map(t => ({value: t.Value, at: t.Timestamp}))
-                    })
-                };
-            },
-            methods: ["GET"],
-            account: storage
-        };
-
-        args = storage.bindTableInput(args, "telemetry", "Telemetry", "(PartitionKey eq '{filter}')");
-
-        return new azure.appservice.HttpEventSubscription('api-get-telemetry', args);
+        args = bindings(args);
+        
+        return new azure.appservice.HttpEventSubscription(name, args);
     }
 }
