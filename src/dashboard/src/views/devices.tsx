@@ -22,6 +22,10 @@ export class Devices extends React.Component<RouteComponentProps, State> {
     this.props.history.push("/devices/" + d.id);
   }
 
+  renderTelemetryModel = (m: string[]) =>{
+    return m.join(",");
+  }
+
   render() {
 
     return (<>
@@ -29,7 +33,7 @@ export class Devices extends React.Component<RouteComponentProps, State> {
       <Table dataSource={this.state.devices} rowKey="id" onRowClick={this.openDeviceDetails} >
         <Table.Column dataIndex="id" title="ID"></Table.Column>
         <Table.Column dataIndex="lastTelemetrySentAt" title="Last Sent" ></Table.Column>
-        <Table.Column dataIndex="lastTelemetryModel" title="Last Model"></Table.Column>
+        <Table.Column dataIndex="lastTelemetryModel" title="Last Model" render={this.renderTelemetryModel}></Table.Column>
       </Table>
     </>);
   }

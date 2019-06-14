@@ -47,7 +47,7 @@ class App extends React.Component<RouteComponentProps> {
               <Route path="/dashboard" exact component={Dashboard} />
               <Route path="/devices" exact component={Devices} />
               <Route path="/devices/:id" exact component={Device} />
-              <Redirect to="/" />
+              <Redirect to="/dashboard" />
             </Switch>
           </div>
         </Content>
