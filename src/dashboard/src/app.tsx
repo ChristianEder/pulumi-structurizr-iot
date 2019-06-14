@@ -42,7 +42,7 @@ class App extends React.Component<RouteComponentProps> {
           <Breadcrumb style={{ margin: '16px 0' }}>
             {crumbs.map((l, i) => <Breadcrumb.Item key={i}><Link to={crumbLinks[i]}>{l}</Link></Breadcrumb.Item>)}
           </Breadcrumb>
-          <div style={{ background: '#fff', padding: 24, height: "100%" }}>
+          <div style={{ background: '#fff', padding: 24, height: "100%", overflow:"scroll" }}>
             <Switch>
               <Route path="/dashboard" exact component={Dashboard} />
               <Route path="/devices" exact component={Devices} />
