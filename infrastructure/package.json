@@ -1,5 +1,5 @@
 {
-    "name": "pulumi-structurizr-iot",
+    "name": "pulumi-structurizr-iot-infrastructure",
     "version": "0.0.1",
     "main": "bin/index.js",
     "typings": "bin/index.d.ts",
