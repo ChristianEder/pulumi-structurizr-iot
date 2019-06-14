@@ -5,6 +5,7 @@ const { Header, Content, Footer } = Layout;
 import "./app.scss";
 import { Dashboard } from './views/dashboard';
 import { Devices } from './views/devices';
+import { Device } from './views/device';
 
 class App extends React.Component<RouteComponentProps> {
 
@@ -13,6 +14,17 @@ class App extends React.Component<RouteComponentProps> {
   };
 
   render() {
+
+    var path = this.props.location.pathname;
+    var crumbs = path.split("/").filter(p => !!p);
+    var crumbLinks = crumbs.map((l, i) =>{
+      var p = "";
+      for(var x = 0; x <= i; x++){
+        p += "/" + crumbs[x];
+      }
+      return p;
+    });
+
     return (
       <Layout className="layout">
         <Header>
@@ -26,15 +38,16 @@ class App extends React.Component<RouteComponentProps> {
             <Menu.Item key="2"><Link to="/devices">Devices</Link></Menu.Item>
           </Menu>
         </Header>
-        <Content style={{ padding: '0 50px', display: "flex", flexDirection : "column" }}>
+        <Content style={{ padding: '0 50px', display: "flex", flexDirection: "column" }}>
           <Breadcrumb style={{ margin: '16px 0' }}>
-            {this.props.location.pathname.split("/").filter(p => !!p).map((l, i) => <Breadcrumb.Item key={i}>{l}</Breadcrumb.Item>)}
+            {crumbs.map((l, i) => <Breadcrumb.Item key={i}><Link to={crumbLinks[i]}>{l}</Link></Breadcrumb.Item>)}
           </Breadcrumb>
           <div style={{ background: '#fff', padding: 24, height: "100%" }}>
             <Switch>
               <Route path="/dashboard" exact component={Dashboard} />
               <Route path="/devices" exact component={Devices} />
-              <Redirect to="/dashboard" />
+              <Route path="/devices/:id" exact component={Device} />
+              <Redirect to="/" />
             </Switch>
           </div>
         </Content>

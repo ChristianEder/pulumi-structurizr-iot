@@ -1,7 +1,13 @@
 // shared config (dev and prod)
-const {resolve} = require('path');
-const {CheckerPlugin} = require('awesome-typescript-loader');
+const { resolve } = require('path');
+const { CheckerPlugin } = require('awesome-typescript-loader');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+
+let options = {
+  plugins: [
+    ["import", { "libraryName": "antd", "libraryDirectory": "es", "style": "css" }]
+  ]
+};
 
 module.exports = {
   resolve: {
@@ -12,12 +18,18 @@ module.exports = {
     rules: [
       {
         test: /\.js$/,
-        use: ['babel-loader', 'source-map-loader'],
+        use: [{
+          loader: 'babel-loader',
+          options: options,
+        }, 'source-map-loader'],
         exclude: /node_modules/,
       },
       {
         test: /\.tsx?$/,
-        use: ['babel-loader', 'awesome-typescript-loader'],
+        use: [{
+          loader: 'babel-loader',
+          options: options,
+        }, 'awesome-typescript-loader'],
       },
       {
         test: /\.css$/,
@@ -42,7 +54,7 @@ module.exports = {
   },
   plugins: [
     new CheckerPlugin(),
-    new HtmlWebpackPlugin({template: 'index.html',}),
+    new HtmlWebpackPlugin({ template: 'index.html', }),
   ],
   performance: {
     hints: false,

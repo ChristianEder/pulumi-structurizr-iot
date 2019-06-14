@@ -10,7 +10,9 @@
         "@pulumi/pulumi": "0.17.16"
     },
     "devDependencies": {
+        "@types/archiver": "^3.0.0",
         "@types/node": "12.0.8",
+        "archiver": "^3.0.0",
         "typescript": "3.5.1"
     },
     "peerDependencies": {

@@ -1,4 +1,3 @@
-import * as pulumi from "@pulumi/pulumi";
 import * as azure from "@pulumi/azure"
 import { Dashboard } from "./resources/dashboard";
 import { Ingress } from "./resources/ingress";
@@ -17,7 +16,7 @@ const account = new azure.storage.Account("storage", {
 
 const ingress = new Ingress(resourceGroup, account);
 const api = new Api(resourceGroup, account);
-const dashboard = new Dashboard(resourceGroup, account);
+const dashboard = new Dashboard(resourceGroup, account, api);
 
 export const apiGetDevicesUrl = api.getDevicesUrl;
 export const apiGetTelemetryUrl = api.getTelemetryUrl;
