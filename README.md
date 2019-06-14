@@ -18,3 +18,33 @@ This is a demonstration of how [pulumi](https://pulumi.io) and [structurizr](htt
 <img src="./architecture/architecture.svg">
 
 ## Getting started
+
+### Prerequisites:
+- [nodejs & npm](https://nodejs.org/en/)
+- [pulumi](https://pulumi.io/quickstart/install/)
+  - You also have to set up an account at pulumi
+- [Microsoft Azure subscription](https://azure.microsoft.com/de-de/free/)
+- [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)
+  - Login with your Microsoft account that you used to setup the Azure subscription using
+  > az login
+- Optional (only required if you want to update the architecture model)
+  - An account at [structurizr](https://structurizr.com)
+  - Create a new workspace
+  - Create a file named "credentials.ts" in the [architecture](/architecture) folder containing your workspace credentials as required by [architecture/index.ts](/architecture/index.ts)
+
+### Deploy 
+
+- On windows, you can just run the following command in the repositories root directory
+  > ./deploy.ps1
+- On other operating systems, follow the instructions you find in [deploy.ps1](deploy.ps1) 
+
+The script will output the URLs of the resources that where created in the command line. After that, you can send messages to the IoT Hub in the format described in [src/ingress/storeReceivedMessage.ts](), and they should end up being shown in the dashboard.
+
+### Run the dashboard locally
+
+> cd src/dashboard\
+> npm i\
+> npm start\
+> // now open http://localhost:8080 in a browser
+
+Please note that the dashboard implementation expects the URLs of the API created during the deployment step in a global variable *window.apiUrls* (see [src/dashboard/src/api/api.ts]()), which is only set in the version of the dashboard that gets deployed to Azure. Locally, you have to set ths variable manually.

@@ -26,7 +26,6 @@ class Api {
             var w = <any>window;
             if (!w.apiUrls) {
                 return [];
-                // w.apiUrls = { "getDevicesUrl": "https://api-get-devicesdaf4312d.azurewebsites.net/api/api-get-devices", "getTelemetryUrl": "https://api-get-telemetryfb0ca44b.azurewebsites.net/api/api-get-telemetry" };
             }
             var response = await fetch(w.apiUrls.getDevicesUrl);
             this.devices = await response.json();
@@ -38,7 +37,6 @@ class Api {
         var w = <any>window;
         if (!w.apiUrls) {
             return null;
-            // w.apiUrls = { "getDevicesUrl": "https://api-get-devicesdaf4312d.azurewebsites.net/api/api-get-devices", "getTelemetryUrl": "https://api-get-telemetryfb0ca44b.azurewebsites.net/api/api-get-telemetry" };
         }
         var response = await fetch(w.apiUrls.getTelemetryUrl + "?filter=" + deviceId + "_" + type);
         var data: Telemetry = await response.json();
