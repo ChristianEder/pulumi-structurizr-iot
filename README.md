@@ -44,6 +44,12 @@ The script will output the URLs of the resources that where created in the comma
 
 Unfortunately, for now pulumi does not support configuring CORS for the Azure functions getting created - you have to do that manually by logging in to the [Azure portal](https://portal.azure.com), selecting the azure function apps created for *api-get-devices* and *api-get-telemetry*, and enabling CORS for the URL where your dashboard gets hosted (and possibly also http://localhost:8080) if you want to run it locally.
 
+### Update architecture model
+
+> cd architecture\
+> npm i\
+> npm run structurizr
+
 ### Run the dashboard locally
 
 > cd src/dashboard\
