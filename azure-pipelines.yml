@@ -1,33 +1,41 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+stages:
+- stage: Build
+  jobs:
+  - job: Build
+    trigger:
+    - master
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - script: npm i && npm run build
+      displayName: 'Build the dashboard'
+      workingDirectory: src/dashboard
 
-trigger:
-- master
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish dashboard artifact'
+      inputs: 
+        PathtoPublish: src/dashboard/dist
+        ArtifactName: src/dashboard/dist
 
-pool:
-  vmImage: 'ubuntu-latest'
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish infrastructure artifact'
+      inputs: 
+        PathtoPublish: infrastructure
+        ArtifactName: infrastructure
 
-steps:
-- script: npm i && npm run build
-  displayName: 'Build the dashboard'
-  workingDirectory: src/dashboard
-
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish dashboard artifact'
-  inputs: 
-    PathtoPublish: src/dashboard/dist
-    ArtifactName: src/dashboard/dist
-    
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish infrastructure artifact'
-  inputs: 
-    PathtoPublish: infrastructure
-    ArtifactName: infrastructure
-    
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish architecture artifact'
-  inputs: 
-    PathtoPublish: architecture
-    ArtifactName: architecture
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish architecture artifact'
+      inputs: 
+        PathtoPublish: architecture
+        ArtifactName: architecture
+- stage: Deploy
+  jobs:
+  - deployment: DeployWeb
+    pool:
+      vmImage: 'ubuntu-latest'
+    environment: 'DEV'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - script: echo my first deployment
