@@ -1,0 +1,29 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- script: npm i && npm run build
+  displayName: 'Build the dashboard'
+  workingDirectory: src/dashboard
+
+- script: npm i
+  displayName: 'Install infrastructure dependencies'
+  workingDirectory: src/infrastructure
+
+- script: npm i
+  displayName: 'Install architecture dependencies'
+  workingDirectory: src/architecture
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish current version artifact'
+  inputs: 
+    PathtoPublish: ./
+    ArtifactName: iot
