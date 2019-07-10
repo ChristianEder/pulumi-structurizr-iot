@@ -28,7 +28,7 @@ stages:
         ArtifactName: architecture
 - stage: Deploy
   jobs:
-  - deployment: DeployWeb
+  - deployment: Deploy
     pool:
       vmImage: 'ubuntu-latest'
     environment: 'DEV'
@@ -36,4 +36,10 @@ stages:
       runOnce:
         deploy:
           steps:
-          - script: echo my first deployment
+          - task: Pulumi@0
+            inputs:
+              azureSubscription: 'azure'
+              command: 'up'
+              cwd: 'infrastructure/'
+              stack: 'ChristianEder/pulumi-structurizr-iot/dev'
+              args: '--yes'
