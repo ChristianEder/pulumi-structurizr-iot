@@ -18,7 +18,7 @@ steps:
   displayName: 'Publish dashboard artifact'
   inputs: 
     PathtoPublish: src/dashboard/dist
-    ArtifactName: dashboard
+    ArtifactName: src/dashboard/dist
     
 - task: PublishBuildArtifacts@1
   displayName: 'Publish infrastructure artifact'
