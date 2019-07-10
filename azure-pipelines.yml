@@ -16,11 +16,11 @@ steps:
 
 - script: npm i
   displayName: 'Install infrastructure dependencies'
-  workingDirectory: src/infrastructure
+  workingDirectory: infrastructure
 
 - script: npm i
   displayName: 'Install architecture dependencies'
-  workingDirectory: src/architecture
+  workingDirectory: architecture
 
 - task: PublishBuildArtifacts@1
   displayName: 'Publish current version artifact'
