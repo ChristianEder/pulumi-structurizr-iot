@@ -14,16 +14,20 @@ steps:
   displayName: 'Build the dashboard'
   workingDirectory: src/dashboard
 
-- script: npm i
-  displayName: 'Install infrastructure dependencies'
-  workingDirectory: infrastructure
-
-- script: npm i
-  displayName: 'Install architecture dependencies'
-  workingDirectory: architecture
-
 - task: PublishBuildArtifacts@1
-  displayName: 'Publish current version artifact'
+  displayName: 'Publish dashboard artifact'
   inputs: 
-    PathtoPublish: ./
-    ArtifactName: iot
+    PathtoPublish: src/dashboard/dist
+    ArtifactName: dashboard
+    
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish infrastructure artifact'
+  inputs: 
+    PathtoPublish: infrastructure
+    ArtifactName: infrastructure
+    
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish architecture artifact'
+  inputs: 
+    PathtoPublish: architecture
+    ArtifactName: architecture
