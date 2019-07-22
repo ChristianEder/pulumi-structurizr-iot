@@ -1,6 +1,6 @@
 {
   "name": "pulumi-structurizr-iot-architecture",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "bin/index.js",
   "typings": "bin/index.d.ts",
   "scripts": {
@@ -8,10 +8,10 @@
     "structurizr": "tsc && node bin/index.js"
   },
   "dependencies": {
-    "structurizr-typescript": "0.0.4"
+    "structurizr-typescript": "0.0.5"
   },
-  "license": "MIT",
   "devDependencies": {
-    "typescript": "3.5.2"
-  }
+    "typescript": "3.5.3"
+  },
+  "license": "MIT"
 }
