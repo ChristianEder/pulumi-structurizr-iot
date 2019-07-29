@@ -7,14 +7,15 @@ import * as path from "path";
 import * as archiver from "archiver";
 
 import { Api } from "./api";
+import { Storage } from "./storage";
 
 export class Dashboard {
 
     public url: pulumi.Output<string>;
 
-    constructor(resourceGroup: azure.core.ResourceGroup, storage: azure.storage.Account, api: Api) {
+    constructor(resourceGroup: azure.core.ResourceGroup, storage: Storage, api: Api) {
         
-        const codeBlobUrl = this.packageDashboardAppToBlob(resourceGroup, storage, api);
+        const codeBlobUrl = this.packageDashboardAppToBlob(resourceGroup, storage.account, api);
         const appServicePlan = this.createAppServicePlan(resourceGroup);
         const app = this.createWebApp(resourceGroup, appServicePlan, codeBlobUrl);
 

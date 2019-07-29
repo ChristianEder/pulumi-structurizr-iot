@@ -1,27 +1,25 @@
 import * as azure from "@pulumi/azure";
 import * as iot from "@pulumi/azure/iot";
 import { storeReceivedMessage } from "../../src/ingress/storeReceivedMessage";
+import { Storage } from "./storage";
 
 export class Ingress {
 
-    constructor(resourceGroup: azure.core.ResourceGroup, storage: azure.storage.Account) {
+    constructor(resourceGroup: azure.core.ResourceGroup, storage: Storage) {
 
         const iotHub = this.createIoTHub(resourceGroup);
 
-        let args: iot.IoTHubSubscriptionArgs = {
+        iotHub.onEvent("telemetry", {
             resourceGroupName: resourceGroup.name,
             location: resourceGroup.location,
-            account: storage,
-            callback: storeReceivedMessage
-        }
-
-        args = storage.bindTableOutput(args, "telemetry", "Telemetry");
-        args = storage.bindTableOutput(args, "devices", "Devices");
-
-        iotHub.onEvent("telemetry", args);
+            account: storage.account,
+            callback: storeReceivedMessage,
+            outputs: [
+                storage.telemetry.output("telemetry"),
+                storage.devices.output("devices")
+            ]
+        });
     }
-
-
 
     private createIoTHub(resourceGroup: azure.core.ResourceGroup) {
         return new iot.IoTHub("hub", {
