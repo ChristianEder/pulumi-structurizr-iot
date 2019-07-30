@@ -15,14 +15,14 @@ export const simulate = (deviceId: string, connectionString: string) => {
         const temperature = {
             Value: lastDataSent.temperature + Math.random() - 0.5,
             Type: "temperature",
-            Timestamp: new Date().toUTCString()
+            Timestamp: new Date().toISOString()
         };
         lastDataSent.temperature = temperature.Value;
 
         const humidity = {
             Value: lastDataSent.humidity + Math.random() - 0.5,
             Type: "humidity",
-            Timestamp: new Date().toUTCString()
+            Timestamp: new Date().toISOString()
         };
         lastDataSent.humidity = humidity.Value;
 

@@ -10,6 +10,8 @@
         "@pulumi/pulumi": "0.17.25",
         "@pulumi/azure": "0.19.3",
         "azure-iothub": "1.10.0",
+        "azure-iot-device": "1.10.0",
+        "azure-iot-device-http": "1.10.0",
         "archiver": "3.0.3"
     },
     "devDependencies": {
