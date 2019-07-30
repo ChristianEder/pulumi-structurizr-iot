@@ -1,3 +1,4 @@
+import * as pulumi from "@pulumi/pulumi";
 import * as azure from "@pulumi/azure";
 import * as iot from "@pulumi/azure/iot";
 import { storeReceivedMessage } from "../../src/ingress/storeReceivedMessage";
@@ -5,11 +6,14 @@ import { Storage } from "./storage";
 
 export class Ingress {
 
-    constructor(resourceGroup: azure.core.ResourceGroup, storage: Storage) {
+    public iotHub: iot.IoTHub;
+    public ownerConnectionString: pulumi.Output<string>;
+  
+    constructor(resourceGroup: azure.core.ResourceGroup, storage: Storage, insights: azure.appinsights.Insights) {
 
-        const iotHub = this.createIoTHub(resourceGroup);
+        this.iotHub = this.createIoTHub(resourceGroup);
 
-        iotHub.onEvent("telemetry", {
+        this.iotHub.onEvent("telemetry", {
             resourceGroupName: resourceGroup.name,
             location: resourceGroup.location,
             account: storage.account,
@@ -17,8 +21,14 @@ export class Ingress {
             outputs: [
                 storage.telemetry.output("telemetry"),
                 storage.devices.output("devices")
-            ]
+            ],
+            appSettings: {
+                "APPINSIGHTS_INSTRUMENTATIONKEY": insights.instrumentationKey
+            }
         });
+
+        const ownerSharedAccessKey = this.iotHub.sharedAccessPolicies.apply(policies => policies.find(p => p.keyName === "iothubowner")!.primaryKey);
+        this.ownerConnectionString = pulumi.interpolate `HostName=${this.iotHub.name}.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=${ownerSharedAccessKey}`;
     }
 
     private createIoTHub(resourceGroup: azure.core.ResourceGroup) {
