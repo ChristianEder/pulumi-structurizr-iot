@@ -8,7 +8,7 @@
     "structurizr": "tsc && node bin/index.js"
   },
   "dependencies": {
-    "structurizr-typescript": "0.0.5"
+    "structurizr-typescript": "0.0.11"
   },
   "devDependencies": {
     "typescript": "3.5.3"

@@ -8,6 +8,7 @@ import { simulate } from '../../src/device-simulator';
 
 export class DeviceSimulator {
     constructor(resourceGroup: azure.core.ResourceGroup, ingress: Ingress, storage: Storage, insights: azure.appinsights.Insights) {
+        
         pulumi.all([ingress.ownerConnectionString, ingress.iotHub.name]).apply(async ([c, n]) => {
             const registry = Registry.fromConnectionString(c);
             const devices = await this.getDevices(registry, 10);
