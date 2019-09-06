@@ -1,6 +1,7 @@
 import * as azure from "@pulumi/azure"
 import { Dashboard } from "./resources/dashboard";
 import { Ingress } from "./resources/ingress";
+import { Aggregation } from "./resources/aggregation";
 import { Api } from "./resources/api";
 import { Storage } from "./resources/storage";
 import { DeviceSimulator } from "./resources/deviceSimulator";
@@ -16,6 +17,7 @@ const insights = new azure.appinsights.Insights("insights", {
 
 const storage = new Storage(resourceGroup);
 const ingress = new Ingress(resourceGroup, storage, insights);
+const aggregation = new Aggregation(resourceGroup, ingress, storage);
 const api = new Api(resourceGroup, storage, insights);
 const dashboard = new Dashboard(resourceGroup, storage, api);
 

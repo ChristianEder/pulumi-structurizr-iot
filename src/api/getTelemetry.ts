@@ -1,6 +1,6 @@
 export const getTelemetry = async (context:any, req:any) => {
 
-    const telemetry: { Type: string, Value: number, Timestamp: string, TimestampTicks: number }[] = context.bindings.telemetry;
+    const telemetry: { Type: string, Value: number, Timestamp: string }[] = context.bindings.telemetry;
 
     return {
         status: 200,

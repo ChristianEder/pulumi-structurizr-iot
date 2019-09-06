@@ -9,7 +9,8 @@ export const simulate = (deviceId: string, connectionString: string) => {
     };
 
     return async () => {
-        console.log("Simulated: " + deviceId);
+        console.log("Simulating: " + deviceId);
+       
         const client = clientFromConnectionString(connectionString);
 
         const temperature = {

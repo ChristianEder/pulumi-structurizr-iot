@@ -2,7 +2,6 @@ import * as azure from '@pulumi/azure';
 import * as pulumi from '@pulumi/pulumi';
 import { Ingress } from './ingress';
 import { Registry, Device } from 'azure-iothub';
-import * as iot from 'azure-iot-device';
 import { Storage } from './storage';
 import { simulate } from '../../src/device-simulator';
 
