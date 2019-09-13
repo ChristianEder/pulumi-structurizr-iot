@@ -4,6 +4,7 @@ export class Storage {
 
     public account: azure.storage.Account;
     public telemetry: azure.storage.Table;
+    public aggregatedTelemetry: azure.storage.Table;
     public devices: azure.storage.Table;
 
     constructor(resourceGroup: azure.core.ResourceGroup) {
@@ -16,6 +17,7 @@ export class Storage {
         });
 
         this.telemetry = new azure.storage.Table("Telemetry", { resourceGroupName: resourceGroup.name, storageAccountName: this.account.name });
+        this.aggregatedTelemetry = new azure.storage.Table("AggregatedTelemetry", { resourceGroupName: resourceGroup.name, storageAccountName: this.account.name });
         this.devices = new azure.storage.Table("Devices", { resourceGroupName: resourceGroup.name, storageAccountName: this.account.name });
     }
 }

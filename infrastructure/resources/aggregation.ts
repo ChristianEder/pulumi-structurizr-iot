@@ -1,6 +1,7 @@
 import * as azure from "@pulumi/azure";
 import { Storage } from "./storage";
 import { Ingress } from "./ingress";
+import * as architectureFlags from "../../architecture/architecture-flags";
 
 export class Aggregation {
     constructor(resourceGroup: azure.core.ResourceGroup, ingress: Ingress, storage: Storage) {
@@ -17,7 +18,7 @@ export class Aggregation {
 
         // TBD: timestamp by currently does not work combined with CROSS APPLY
         // https://stackoverflow.com/questions/38084352/in-azure-stream-analytics-query-i-am-getting-an-error-when-using-timestamp-by
-        const query = `WITH 
+        let query = `WITH 
                         telemetryMessages AS (
                             SELECT IoTHub.ConnectionDeviceId as deviceId, [telemetry].DataPoints as datapoints
                             FROM telemetry),
@@ -30,12 +31,15 @@ export class Aggregation {
                         SELECT CONCAT ([telemetryDatapoints].deviceId, '_', [telemetryDatapoints].type, '_5minavg') AS PartitionKey, UDF.toEpochSeconds(System.Timestamp) AS RowKey, avg([telemetryDatapoints].value) as Value, [telemetryDatapoints].type as Type, System.Timestamp() as Timestamp
                         INTO  aggregatedTelemetry
                         FROM telemetryDatapoints
-                        GROUP BY [telemetryDatapoints].deviceId, [telemetryDatapoints].type, TumblingWindow(minute, 5)
-                            
-                        SELECT CONCAT ([telemetryDatapoints].deviceId, '_', [telemetryDatapoints].type) AS PartitionKey, UDF.toEpochSeconds(System.Timestamp) AS RowKey, [telemetryDatapoints].value as Value, [telemetryDatapoints].type as Type, System.Timestamp() as Timestamp
-                        INTO  aggregatedTelemetry
-                        FROM telemetryDatapoints
-                        GROUP BY [telemetryDatapoints].deviceId, [telemetryDatapoints].type`;
+                        GROUP BY [telemetryDatapoints].deviceId, [telemetryDatapoints].type, TumblingWindow(minute, 5)`;
+
+        if (architectureFlags.ingress === "StreamAnalytics") {
+            query += `                         
+                SELECT CONCAT ([telemetryDatapoints].deviceId, '_', [telemetryDatapoints].type) AS PartitionKey, UDF.toEpochSeconds(System.Timestamp) AS RowKey, [telemetryDatapoints].value as Value, [telemetryDatapoints].type as Type, System.Timestamp() as Timestamp
+                INTO  rawTelemetry
+                FROM telemetryDatapoints
+                GROUP BY [telemetryDatapoints].deviceId, [telemetryDatapoints].type`;
+        }
 
         const job = new azure.streamanalytics.Job("aggregation", {
             resourceGroupName: resourceGroup.name,
@@ -64,7 +68,7 @@ export class Aggregation {
             streamAnalyticsJobName: job.name,
         });
 
-        this.defineOutput(resourceGroup, storage, job);
+        this.defineOutputs(resourceGroup, storage, job);
 
         this.defineUDFs(resourceGroup, job);
     }
@@ -113,8 +117,17 @@ export class Aggregation {
         });
     }
 
-    private defineOutput(resourceGroup: azure.core.ResourceGroup, storage: Storage, job: azure.streamanalytics.Job) {
+    private defineOutputs(resourceGroup: azure.core.ResourceGroup, storage: Storage, job: azure.streamanalytics.Job) {
         // TODO: this is a workaround for as long as pulumi doesnt support Table Output natively
+
+        const outputs = [
+            this.defineOutput("aggregatedTelemetry", "AggregatedTelemetry"),
+        ];
+
+        if (architectureFlags.ingress === "StreamAnalytics") {
+            outputs.push(this.defineOutput("rawTelemetry", "Telemetry"));
+        }
+
         const outputArm = {
             "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
             "contentVersion": "1.0.0.0",
@@ -123,32 +136,7 @@ export class Aggregation {
                 "accountKey": { "type": "string" },
                 "jobName": { "type": "string" }
             },
-            "resources": [
-                {
-                    "name": "[concat(parameters('jobName'), '/aggregatedTelemetry')]",
-                    "type": "Microsoft.StreamAnalytics/streamingjobs/outputs",
-                    "apiVersion": "2016-03-01",
-                    "properties": {
-                        "datasource": {
-                            "type": "Microsoft.Storage/Table",
-                            "properties": {
-                                "accountName": "[parameters('accountName')]",
-                                "accountKey": "[parameters('accountKey')]",
-                                "table": "Telemetry",
-                                "partitionKey": "PartitionKey",
-                                "rowKey": "RowKey",
-                                "batchSize": 10
-                            }
-                        },
-                        "serialization": {
-                            "type": "Json",
-                            "properties": {
-                                "encoding": "UTF8"
-                            }
-                        }
-                    }
-                }
-            ]
+            "resources": outputs
         };
         const output = new azure.core.TemplateDeployment("aggregation-out", {
             resourceGroupName: resourceGroup.name,
@@ -160,5 +148,32 @@ export class Aggregation {
                 jobName: job.name
             }
         });
+    }
+
+    private defineOutput(name: string, tableName: string) {
+        return {
+            "name": "[concat(parameters('jobName'), '/" + name + "')]",
+            "type": "Microsoft.StreamAnalytics/streamingjobs/outputs",
+            "apiVersion": "2016-03-01",
+            "properties": {
+                "datasource": {
+                    "type": "Microsoft.Storage/Table",
+                    "properties": {
+                        "accountName": "[parameters('accountName')]",
+                        "accountKey": "[parameters('accountKey')]",
+                        "table": tableName,
+                        "partitionKey": "PartitionKey",
+                        "rowKey": "RowKey",
+                        "batchSize": 10
+                    }
+                },
+                "serialization": {
+                    "type": "Json",
+                    "properties": {
+                        "encoding": "UTF8"
+                    }
+                }
+            }
+        };
     }
 }
