@@ -26,19 +26,23 @@ export class Aggregation {
                         telemetryDatapoints AS (  
                             SELECT [telemetryMessages].deviceId as deviceId, datapoints.ArrayValue.Type AS type, datapoints.ArrayValue.Value AS value   
                             FROM telemetryMessages  
-                            CROSS APPLY GetArrayElements ([telemetryMessages].DataPoints) as datapoints)
-                                
-                        SELECT CONCAT ([telemetryDatapoints].deviceId, '_', [telemetryDatapoints].type) AS PartitionKey, UDF.toEpochSeconds(System.Timestamp) AS RowKey, avg([telemetryDatapoints].value) as Average, max([telemetryDatapoints].value) as Maximum, min([telemetryDatapoints].value) as Minimum, [telemetryDatapoints].type as Type, System.Timestamp() as Timestamp
-                        INTO  aggregatedTelemetry
-                        FROM telemetryDatapoints
-                        GROUP BY [telemetryDatapoints].deviceId, [telemetryDatapoints].type, TumblingWindow(minute, 5)`;
+                            CROSS APPLY GetArrayElements ([telemetryMessages].DataPoints) as datapoints)`;
+
+        if (architectureFlags.doAggregation) {
+            query += `
+
+                SELECT CONCAT ([telemetryDatapoints].deviceId, '_', [telemetryDatapoints].type) AS PartitionKey, UDF.toEpochSeconds(System.Timestamp) AS RowKey, avg([telemetryDatapoints].value) as Average, max([telemetryDatapoints].value) as Maximum, min([telemetryDatapoints].value) as Minimum, [telemetryDatapoints].type as Type, System.Timestamp() as Timestamp
+                INTO  aggregatedTelemetry
+                FROM telemetryDatapoints
+                GROUP BY [telemetryDatapoints].deviceId, [telemetryDatapoints].type, TumblingWindow(minute, 5)`;
+        }
 
         if (architectureFlags.ingress === "StreamAnalytics") {
-            query += `                         
+            query += `       
+
                 SELECT CONCAT ([telemetryDatapoints].deviceId, '_', [telemetryDatapoints].type) AS PartitionKey, UDF.toEpochSeconds(System.Timestamp) AS RowKey, [telemetryDatapoints].value as Value, [telemetryDatapoints].type as Type, System.Timestamp() as Timestamp
                 INTO  rawTelemetry
-                FROM telemetryDatapoints
-                GROUP BY [telemetryDatapoints].deviceId, [telemetryDatapoints].type`;
+                FROM telemetryDatapoints`;
         }
 
         const job = new azure.streamanalytics.Job("aggregation", {
@@ -120,9 +124,11 @@ export class Aggregation {
     private defineOutputs(resourceGroup: azure.core.ResourceGroup, storage: Storage, job: azure.streamanalytics.Job) {
         // TODO: this is a workaround for as long as pulumi doesnt support Table Output natively
 
-        const outputs = [
-            this.defineOutput("aggregatedTelemetry"),
-        ];
+        const outputs = [];
+
+        if(architectureFlags.doAggregation){
+            outputs.push(this.defineOutput("aggregatedTelemetry"));
+        }
 
         if (architectureFlags.ingress === "StreamAnalytics") {
             outputs.push(this.defineOutput("rawTelemetry"));
@@ -131,9 +137,23 @@ export class Aggregation {
         const parameters: { [name: string]: any } = {
             "accountName": { "type": "string" },
             "accountKey": { "type": "string" },
-            "jobName": { "type": "string" },
-            "table_aggregatedTelemetry": { "type": "string" }
+            "jobName": { "type": "string" }
         };
+        const parameterValues: { [name: string]: any } = {
+            accountName: storage.account.name,
+            accountKey: storage.account.primaryAccessKey,
+            jobName: job.name
+        };
+
+        if (architectureFlags.doAggregation) {
+            parameters["table_aggregatedTelemetry"] = { "type": "string" };
+            parameterValues["table_aggregatedTelemetry"] = storage.aggregatedTelemetry.name;
+        }
+
+        if (architectureFlags.ingress === "StreamAnalytics") {
+            parameters["table_rawTelemetry"] = { "type": "string" };
+            parameterValues["table_rawTelemetry"] = storage.telemetry.name;
+        }
 
         const outputArm = {
             "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
@@ -141,17 +161,6 @@ export class Aggregation {
             "parameters": parameters,
             "resources": outputs
         };
-        const parameterValues: { [name: string]: any } = {
-            accountName: storage.account.name,
-            accountKey: storage.account.primaryAccessKey,
-            jobName: job.name,
-            table_aggregatedTelemetry: storage.aggregatedTelemetry.name
-        };
-
-        if (architectureFlags.ingress === "StreamAnalytics") {
-            parameters["table_rawTelemetry"] = { "type": "string" };
-            parameterValues["table_rawTelemetry"] = storage.telemetry.name;
-        }
 
         const output = new azure.core.TemplateDeployment("aggregation-out", {
             resourceGroupName: resourceGroup.name,
