@@ -27,3 +27,4 @@ const deviceSimulator = new DeviceSimulator(resourceGroup, ingress, storage, ins
 export const apiGetDevicesUrl = api.getDevicesUrl;
 export const apiGetTelemetryUrl = api.getTelemetryUrl;
 export const dashboardUrl = dashboard.url;
+export const ownerConnectionString = ingress.ownerConnectionString;

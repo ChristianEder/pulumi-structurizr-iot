@@ -28,7 +28,7 @@ export class Aggregation {
                             FROM telemetryMessages  
                             CROSS APPLY GetArrayElements ([telemetryMessages].DataPoints) as datapoints)
                                 
-                        SELECT CONCAT ([telemetryDatapoints].deviceId, '_', [telemetryDatapoints].type, '_5minavg') AS PartitionKey, UDF.toEpochSeconds(System.Timestamp) AS RowKey, avg([telemetryDatapoints].value) as Value, [telemetryDatapoints].type as Type, System.Timestamp() as Timestamp
+                        SELECT CONCAT ([telemetryDatapoints].deviceId, '_', [telemetryDatapoints].type) AS PartitionKey, UDF.toEpochSeconds(System.Timestamp) AS RowKey, avg([telemetryDatapoints].value) as Average, max([telemetryDatapoints].value) as Maximum, min([telemetryDatapoints].value) as Minimum, [telemetryDatapoints].type as Type, System.Timestamp() as Timestamp
                         INTO  aggregatedTelemetry
                         FROM telemetryDatapoints
                         GROUP BY [telemetryDatapoints].deviceId, [telemetryDatapoints].type, TumblingWindow(minute, 5)`;
@@ -121,36 +121,47 @@ export class Aggregation {
         // TODO: this is a workaround for as long as pulumi doesnt support Table Output natively
 
         const outputs = [
-            this.defineOutput("aggregatedTelemetry", "AggregatedTelemetry"),
+            this.defineOutput("aggregatedTelemetry"),
         ];
 
         if (architectureFlags.ingress === "StreamAnalytics") {
-            outputs.push(this.defineOutput("rawTelemetry", "Telemetry"));
+            outputs.push(this.defineOutput("rawTelemetry"));
         }
+
+        const parameters: { [name: string]: any } = {
+            "accountName": { "type": "string" },
+            "accountKey": { "type": "string" },
+            "jobName": { "type": "string" },
+            "table_aggregatedTelemetry": { "type": "string" }
+        };
 
         const outputArm = {
             "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
             "contentVersion": "1.0.0.0",
-            "parameters": {
-                "accountName": { "type": "string" },
-                "accountKey": { "type": "string" },
-                "jobName": { "type": "string" }
-            },
+            "parameters": parameters,
             "resources": outputs
         };
+        const parameterValues: { [name: string]: any } = {
+            accountName: storage.account.name,
+            accountKey: storage.account.primaryAccessKey,
+            jobName: job.name,
+            table_aggregatedTelemetry: storage.aggregatedTelemetry.name
+        };
+
+        if (architectureFlags.ingress === "StreamAnalytics") {
+            parameters["table_rawTelemetry"] = { "type": "string" };
+            parameterValues["table_rawTelemetry"] = storage.telemetry.name;
+        }
+
         const output = new azure.core.TemplateDeployment("aggregation-out", {
             resourceGroupName: resourceGroup.name,
             deploymentMode: "Incremental",
             templateBody: JSON.stringify(outputArm),
-            parameters: {
-                accountName: storage.account.name,
-                accountKey: storage.account.primaryAccessKey,
-                jobName: job.name
-            }
+            parameters: parameterValues
         });
     }
 
-    private defineOutput(name: string, tableName: string) {
+    private defineOutput(name: string) {
         return {
             "name": "[concat(parameters('jobName'), '/" + name + "')]",
             "type": "Microsoft.StreamAnalytics/streamingjobs/outputs",
@@ -161,7 +172,7 @@ export class Aggregation {
                     "properties": {
                         "accountName": "[parameters('accountName')]",
                         "accountKey": "[parameters('accountKey')]",
-                        "table": tableName,
+                        "table": "[parameters('table_" + name + "')]",
                         "partitionKey": "PartitionKey",
                         "rowKey": "RowKey",
                         "batchSize": 10

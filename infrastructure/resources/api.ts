@@ -14,26 +14,29 @@ export class Api {
         this.getDevicesUrl = this.createApiEndpoint(
             "api-get-devices",
             getDevices, 
-            storage.devices.input("devices"),
+            [storage.devices.input("devices")],
             insights)
             .url;
             
         this.getTelemetryUrl = this.createApiEndpoint(
             "api-get-telemetry", 
             getTelemetry,
-            storage.telemetry.input("telemetry", { filter: "(PartitionKey eq '{filter}')"  }),
+            [
+                storage.telemetry.input("telemetry", { filter: "(PartitionKey eq '{filter}')"  }),
+                storage.aggregatedTelemetry.input("aggregatedTelemetry", { filter: "(PartitionKey eq '{filter}')"  })
+            ],
             insights)
             .url;
     }
 
-    createApiEndpoint(name: string, callback: any, input: azure.appservice.InputBindingSettings, insights: azure.appinsights.Insights) {
+    createApiEndpoint(name: string, callback: any, inputs: azure.appservice.InputBindingSettings[], insights: azure.appinsights.Insights) {
 
         let args: azure.appservice.HttpEventSubscriptionArgs = {
             resourceGroup: this.resourceGroup,
             callback: callback,
             methods: ["GET"],
             account: this.storage.account,
-            inputs: [input],
+            inputs: inputs,
             appSettings: {
                 "APPINSIGHTS_INSTRUMENTATIONKEY": insights.instrumentationKey
             }
